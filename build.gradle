@@ -1,0 +1,66 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: "com.github.hierynomus.license"
+
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+group = "com.github.akarnokd" 
+ext.githubProjectName = 'space-4x-management-game'
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+if (!hasProperty('mainClass')) {
+    ext.mainClass = ''
+
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://oss.sonatype.org/content/groups/public' }
+    maven { url 'https://oss.jfrog.org/libs-snapshot' }
+    maven { url 'http://repo.spring.io/libs-snapshot' }
+}
+
+dependencies {
+    compile "io.reactivex.rxjava2:rxjava:2.1.3"
+    compile "com.github.akarnokd:rxjava2-extensions:0.17.6"
+    compile "com.github.akarnokd:ixjava:1.0.0-RC5"
+}
+
+[compileJava, compileTestJava]*.options*.compilerArgs << "-parameters"
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters";
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+
+license {
+    header rootProject.file('HEADER')
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    skipExistingHeaders true
+    ignoreFailures true
+    excludes(["**/*.md", "**/*.txt"])
+}
+
+
