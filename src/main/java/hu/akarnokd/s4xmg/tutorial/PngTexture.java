@@ -17,19 +17,20 @@ public class PngTexture {
         ByteBuffer buf = null;
         try {
             PNGDecoder decoder = new PNGDecoder(new FileInputStream(filePath));
-            buf = memAlloc(4 * decoder.getWidth() * decoder.getHeight());
+            int picSize = 4 * decoder.getWidth() * decoder.getHeight();
+            buf = memAlloc(picSize);
             decoder.decode(buf, 4 * decoder.getWidth(), PNGDecoder.Format.RGBA);
             buf.flip();
 
             texId = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, texId);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, decoder.getWidth(), decoder.getHeight(),
                     0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             //glGenerateMipmap(GL_TEXTURE_2D);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
