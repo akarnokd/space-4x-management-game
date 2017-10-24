@@ -1,4 +1,4 @@
-package hu.akarnokd.s4xmg;
+package hu.akarnokd.s4xmg.tutorial;
 
 import org.joml.Matrix4f;
 import org.lwjgl.system.*;
@@ -113,5 +113,9 @@ public class ShaderProgram {
 
             glUniformMatrix4fv(uniforms.get(name), false, buf);
         }
+    }
+
+    public void setUniform(String name, int value) {
+        glUniform1i(uniforms.get(name), value);
     }
 }

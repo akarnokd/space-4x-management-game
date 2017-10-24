@@ -1,4 +1,4 @@
-package hu.akarnokd.s4xmg;
+package hu.akarnokd.s4xmg.tutorial;
 
 import org.joml.*;
 
