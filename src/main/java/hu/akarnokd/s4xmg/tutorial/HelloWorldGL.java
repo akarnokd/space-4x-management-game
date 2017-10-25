@@ -3,7 +3,7 @@ package hu.akarnokd.s4xmg.tutorial;
 import org.joml.Matrix4f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
 import java.awt.*;
@@ -57,6 +57,14 @@ public class HelloWorldGL {
 
     static ShapeMesh shapeMesh;
 
+    static boolean takePixel;
+
+    static int takePixelX;
+
+    static int takePixelY;
+
+    static boolean paused;
+
     public static void main(String[] args) {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
@@ -92,12 +100,26 @@ public class HelloWorldGL {
            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                glfwSetWindowShouldClose(window, true);
            }
+           if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+               paused = !paused;
+           }
         });
 
         glfwSetWindowSizeCallback(window, (wnd, w, h) -> {
             resized = true;
             width = w;
             height = h;
+        });
+
+        glfwSetCursorPosCallback(window, (w, xpos, ypos) -> {
+            takePixelX = (int)xpos;
+            takePixelY = (int)ypos;
+        });
+
+        glfwSetMouseButtonCallback(window, (w, button, action, mods) -> {
+            if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+                takePixel = true;
+            }
         });
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -308,7 +330,9 @@ public class HelloWorldGL {
 
             for (ViewItem item : items) {
 
-                item.rotation().y += 0.5;
+                if (!paused) {
+                    item.rotation().y += 0.5;
+                }
                 item.position().z = -1;
                 item.scale(0.5f);
 
@@ -353,17 +377,34 @@ public class HelloWorldGL {
 
             fontProgram.unbind();
 
-            textAngle += 1;
+            if (!paused) {
+                textAngle += 1;
+            }
 
             // ------------------------------------------ disable clipping
 
             ClippingHelper.endClipping();
+
+
+            // pixel sampling
+            if (takePixel) {
+                try (MemoryStack stack = MemoryStack.stackPush()) {
+                    ByteBuffer pixel = stack.malloc(4);
+
+                    glReadPixels(takePixelX, height - takePixelY, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixel);
+
+                    System.out.printf("Pixel (%s, %s) = %08X%n", takePixelX, takePixelY, pixel.getInt());
+
+                    takePixel = false;
+                }
+            }
 
             // custom end
 
             glfwSwapBuffers(window);
 
             glfwPollEvents();
+
         }
     }
 
