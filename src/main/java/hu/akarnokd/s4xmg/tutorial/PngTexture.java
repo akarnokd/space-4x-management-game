@@ -6,7 +6,6 @@ import java.io.*;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class PngTexture {
@@ -16,10 +15,16 @@ public class PngTexture {
     public PngTexture(String filePath) {
         ByteBuffer buf = null;
         try {
-            PNGDecoder decoder = new PNGDecoder(new FileInputStream(filePath));
-            int picSize = 4 * decoder.getWidth() * decoder.getHeight();
-            buf = memAlloc(picSize);
-            decoder.decode(buf, 4 * decoder.getWidth(), PNGDecoder.Format.RGBA);
+            int width;
+            int height;
+            try (FileInputStream fin = new FileInputStream(filePath)) {
+                PNGDecoder decoder = new PNGDecoder(fin);
+                width = decoder.getWidth();
+                height = decoder.getHeight();
+                int picSize = 4 * width * height;
+                buf = memAlloc(picSize);
+                decoder.decode(buf, 4 * width, PNGDecoder.Format.RGBA);
+            }
             buf.flip();
 
             texId = glGenTextures();
@@ -28,7 +33,7 @@ public class PngTexture {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, decoder.getWidth(), decoder.getHeight(),
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
                     0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
             //glGenerateMipmap(GL_TEXTURE_2D);
