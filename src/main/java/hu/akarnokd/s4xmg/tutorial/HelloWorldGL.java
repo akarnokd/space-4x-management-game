@@ -65,6 +65,8 @@ public class HelloWorldGL {
 
     static boolean paused;
 
+    static ShapeMesh anotherShape;
+
     public static void main(String[] args) {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
@@ -305,6 +307,8 @@ public class HelloWorldGL {
         simpleShapes.createUniform("color");
 
         shapeMesh = ShapeMesh.rectangle(100, 100, 100, 100);
+
+        anotherShape = ShapeMesh.rectangleLineLoop(100, 100, 100, 100);
     }
 
     static void loop() {
@@ -346,7 +350,10 @@ public class HelloWorldGL {
 
             glDisable(GL_DEPTH_TEST);
 
-            Matrix4f ortho = transformation.getOrthoProjectionMatrix(0, width, height, 0);
+            // 0.375: shift by a subpixel so the rendering becomes pixel perfect
+            // https://stackoverflow.com/questions/10320332/how-to-render-perfect-wireframed-rectangle-in-2d-mode-with-opengl
+            Matrix4f defaultOrtho = transformation.getOrthoProjectionMatrix(0, width, height, 0, 0.375f);
+            Matrix4f ortho = new Matrix4f(defaultOrtho);
 
             // specify clipping region-----------------------------------------------------------
 
@@ -385,6 +392,16 @@ public class HelloWorldGL {
 
             ClippingHelper.endClipping();
 
+            simpleShapes.bind();
+            simpleShapes.setUniform("projModelMatrix", defaultOrtho);
+            simpleShapes.setUniform("color", 0f, 0f, 1f, 1f);
+
+            //glEnable(GL_LINE_SMOOTH);
+            //glHint(GL_LINE_SMOOTH_HINT,  GL_NONE);
+            anotherShape.drawLineLoop();
+            //glDisable(GL_LINE_SMOOTH);
+
+            simpleShapes.unbind();
 
             // pixel sampling
             if (takePixel) {

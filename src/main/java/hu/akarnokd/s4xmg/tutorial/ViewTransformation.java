@@ -42,6 +42,13 @@ public class ViewTransformation {
         return orthoMatrix;
     }
 
+    public Matrix4f getOrthoProjectionMatrix(int left, int right, int bottom, int top, float correction) {
+        orthoMatrix.identity()
+                .ortho2D(left, right, bottom, top)
+                .translate(correction, correction, 0f);
+        return orthoMatrix;
+    }
+
     public Matrix4f getOrthoProjectModelMatrix(float x, float y, float scale, float rotation, Matrix4f ortho) {
         return ortho.translate(x, y, 0f)
                 .rotateZ((float) Math.toRadians(rotation))

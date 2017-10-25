@@ -49,10 +49,26 @@ public class ShapeMesh {
     }
 
     public void draw() {
+        draw(GL_TRIANGLES);
+    }
+
+    public void drawLines() {
+        draw(GL_LINES);
+    }
+
+    public void drawLineLoop() {
+        draw(GL_LINE_LOOP);
+    }
+
+    public void drawPoints() {
+        draw(GL_POINTS);
+    }
+
+    void draw(int mode) {
         glBindVertexArray(vaoId);
         glEnableVertexAttribArray(0);
 
-        glDrawElements(GL_TRIANGLES, verticesCount, GL_UNSIGNED_INT, 0);
+        glDrawElements(mode, verticesCount, GL_UNSIGNED_INT, 0);
 
         glDisableVertexAttribArray(0);
         glBindVertexArray(0);
@@ -78,6 +94,28 @@ public class ShapeMesh {
                 x + width - 1, y + height - 1, 0
         }, new int[] {
                 0, 1, 2, 2, 1, 3
+        });
+    }
+
+    public static ShapeMesh rectangleLines(int x, int y, int width, int height) {
+        return new ShapeMesh(new float[] {
+                x, y, 0,
+                x, y + height - 1, 0,
+                x + width - 1, y, 0,
+                x + width - 1, y + height - 1, 0
+        }, new int[] {
+                0, 1, 1, 3, 3, 2, 2, 0
+        });
+    }
+
+    public static ShapeMesh rectangleLineLoop(int x, int y, int width, int height) {
+        return new ShapeMesh(new float[] {
+                x, y, 0,
+                x, y + height - 1, 0,
+                x + width - 1, y, 0,
+                x + width - 1, y + height - 1, 0
+        }, new int[] {
+                0, 1, 3, 2
         });
     }
 }
