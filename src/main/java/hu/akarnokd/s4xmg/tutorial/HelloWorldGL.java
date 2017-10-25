@@ -6,14 +6,18 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.*;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.List;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class HelloWorldGL {
@@ -40,6 +44,14 @@ public class HelloWorldGL {
     static List<ViewItem> items;
 
     static PngTexture texture;
+
+    static FontTexture font;
+
+    static ShaderProgram fontProgram;
+
+    static TextMesh textMesh;
+
+    static float textAngle = 0f;
 
     public static void main(String[] args) {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -229,8 +241,28 @@ public class HelloWorldGL {
 
         items.add(new ViewItem(mesh));
 
-        glEnable(GL_DEPTH_TEST);
+        // --------------------------------------------------------------------------
+
+        fontProgram = new ShaderProgram();
+        try {
+            fontProgram.createVertexShader(new String(Files.readAllBytes(Paths.get("data/shaders/text_vertex.vs"))));
+            fontProgram.createFragmentShader(new String(Files.readAllBytes(Paths.get("data/shaders/text_fragment.fs"))));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        fontProgram.link();
+
+        fontProgram.createUniform("projModelMatrix");
+        fontProgram.createUniform("texture_sampler");
+        fontProgram.createUniform("color");
+
+        font = FontTexture.createAscii(new Font(Font.MONOSPACED, Font.PLAIN, 20));
+
+        textMesh = new TextMesh("Hello World!", font);
+
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     static void loop() {
@@ -245,6 +277,8 @@ public class HelloWorldGL {
             }
 
             // custom rendering part
+
+            glEnable(GL_DEPTH_TEST);
 
             program.bind();
 
@@ -265,6 +299,26 @@ public class HelloWorldGL {
             }
 
             program.unbind();
+
+            // print text -----------------------------------------------------------------------
+
+            glDisable(GL_DEPTH_TEST);
+
+            fontProgram.bind();
+            fontProgram.setUniform("texture_sampler", 0);
+            fontProgram.setUniform("color", 1f, 0f, 0f, 1f);
+
+            float textPosX = (width - textMesh.width()) / 2;
+            float textPosY = (height - textMesh.height()) / 2;
+            Matrix4f ortho = transformation.getOrthoProjectionMatrix(0, width, height, 0);
+            Matrix4f projModelMatrix = transformation.getOrthoProjectModelMatrix(textPosX, textPosY, 1, textAngle, ortho);
+            fontProgram.setUniform("projModelMatrix", projModelMatrix);
+
+            textMesh.draw();
+
+            fontProgram.unbind();
+
+            textAngle += 1;
 
             // custom end
 

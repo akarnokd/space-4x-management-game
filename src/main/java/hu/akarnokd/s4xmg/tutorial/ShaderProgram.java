@@ -115,6 +115,10 @@ public class ShaderProgram {
         }
     }
 
+    public void setUniform(String name, float a, float b, float c, float d) {
+        glUniform4f(uniforms.get(name), a, b, c, d);
+    }
+
     public void setUniform(String name, int value) {
         glUniform1i(uniforms.get(name), value);
     }

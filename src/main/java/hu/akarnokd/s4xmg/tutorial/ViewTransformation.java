@@ -10,9 +10,12 @@ public class ViewTransformation {
 
     final Matrix4f worldMatrix;
 
+    final Matrix4f orthoMatrix;
+
     public ViewTransformation() {
         projectionMatrix = new Matrix4f();
         worldMatrix = new Matrix4f();
+        orthoMatrix = new Matrix4f();
     }
 
     public Matrix4f getProjectionMatrix(float fov, int width, int height, float zNear, float zFar) {
@@ -31,5 +34,17 @@ public class ViewTransformation {
                 .scale(scale)
         ;
         return worldMatrix;
+    }
+
+    public Matrix4f getOrthoProjectionMatrix(int left, int right, int bottom, int top) {
+        orthoMatrix.identity()
+                .ortho2D(left, right, bottom, top);
+        return orthoMatrix;
+    }
+
+    public Matrix4f getOrthoProjectModelMatrix(float x, float y, float scale, float rotation, Matrix4f ortho) {
+        return ortho.translate(x, y, 0f)
+                .rotateZ((float) Math.toRadians(rotation))
+                .scale(scale);
     }
 }

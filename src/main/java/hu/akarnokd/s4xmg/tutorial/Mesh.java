@@ -83,6 +83,7 @@ public class Mesh {
 
     public void cleanup() {
         glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glDeleteBuffers(vboId);
