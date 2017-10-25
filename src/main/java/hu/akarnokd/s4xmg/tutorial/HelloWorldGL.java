@@ -53,6 +53,10 @@ public class HelloWorldGL {
 
     static float textAngle = 0f;
 
+    static ShaderProgram simpleShapes;
+
+    static ShapeMesh shapeMesh;
+
     public static void main(String[] args) {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
@@ -263,13 +267,29 @@ public class HelloWorldGL {
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // --------------------------------------------------------------------------
+
+        simpleShapes = new ShaderProgram();
+        try {
+            simpleShapes.createVertexShader(new String(Files.readAllBytes(Paths.get("data/shaders/simpleshapes_vertex.vs"))));
+            simpleShapes.createFragmentShader(new String(Files.readAllBytes(Paths.get("data/shaders/simpleshapes_fragment.fs"))));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        simpleShapes.link();
+
+        simpleShapes.createUniform("projModelMatrix");
+        simpleShapes.createUniform("color");
+
+        shapeMesh = ShapeMesh.rectangle(100, 100, 100, 100);
     }
 
     static void loop() {
         glClearColor(1f, 0.9f, 0.9f, 0f);
 
         while (!glfwWindowShouldClose(window)) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
             if (resized) {
                 glViewport(0, 0, width, height);
@@ -300,9 +320,25 @@ public class HelloWorldGL {
 
             program.unbind();
 
-            // print text -----------------------------------------------------------------------
-
             glDisable(GL_DEPTH_TEST);
+
+            Matrix4f ortho = transformation.getOrthoProjectionMatrix(0, width, height, 0);
+
+            // specify clipping region-----------------------------------------------------------
+
+            ClippingHelper.beginClipping();
+
+            simpleShapes.bind();
+            simpleShapes.setUniform("color", 1f, 1f, 1f, 1f);
+            simpleShapes.setUniform("projModelMatrix", ortho);
+
+            shapeMesh.draw();
+
+            simpleShapes.unbind();
+
+            ClippingHelper.objectDraw();
+
+            // print text -----------------------------------------------------------------------
 
             fontProgram.bind();
             fontProgram.setUniform("texture_sampler", 0);
@@ -310,7 +346,6 @@ public class HelloWorldGL {
 
             float textPosX = (width - textMesh.width()) / 2;
             float textPosY = (height - textMesh.height()) / 2;
-            Matrix4f ortho = transformation.getOrthoProjectionMatrix(0, width, height, 0);
             Matrix4f projModelMatrix = transformation.getOrthoProjectModelMatrix(textPosX, textPosY, 1, textAngle, ortho);
             fontProgram.setUniform("projModelMatrix", projModelMatrix);
 
@@ -319,6 +354,10 @@ public class HelloWorldGL {
             fontProgram.unbind();
 
             textAngle += 1;
+
+            // ------------------------------------------ disable clipping
+
+            ClippingHelper.endClipping();
 
             // custom end
 
